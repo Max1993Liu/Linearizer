@@ -4,6 +4,10 @@ import numpy as np
 import math
 
 
+__all__ = ['Abs', 'Loge', 'Log2', 'Log10', 'Exp',
+            'Power2', 'Power3', 'Power4', 'Sqrt', 'Inv', 'InvPower2']
+
+
 class BaseTransformer:
         
     def __init__(self):
@@ -11,6 +15,12 @@ class BaseTransformer:
         
     def __call__(self, x):
         return NotImplementedError
+
+    def validate_input(self, x):
+        """ Overwrite this method to validate the input before fitting parameters 
+            return whether `x` is valid for the current transformation
+        """
+        return np.isfinite(x).all()
     
     def get_params(self):
         """ Return the variable name for the parameters """
@@ -31,42 +41,42 @@ class BaseTransformer:
 
 class Abs(BaseTransformer):
 
-    def __call__(self, x, a):
-        return np.abs(x + a)
+    def __call__(self, x, a, b):
+        return np.abs(a * x + b)
 
 
 class Loge(BaseTransformer):
 
-    def __call__(self, x, a):
-        return np.log(x + a)
+    def __call__(self, x, a, b):
+        return np.log(a * x + b)
 
 
- class log2(BaseTransformer):
+ class Log2(BaseTransformer):
 
-    def __call__(self, x, a):
-        return np.log2(x + a)
+    def __call__(self, x, a, b):
+        return np.log2(a * x + b)
 
 
-class log10(BaseTransformer):
+class Log10(BaseTransformer):
 
-    def __call__(self, x, a):
-        return np.log10(x + a)
+    def __call__(self, x, a, b):
+        return np.log10(a * x + b)
 
 
 class Exp(BaseTransformer):
 
-    def __call__(self, x, a):
-        return np.exp(x + a)
+    def __call__(self, x, a, b):
+        return np.exp(a * x + b)
 
 
 class _Power(BaseTransformer):
     n = 1
 
-    def __call__(self, x, a):
+    def __call__(self, x, a, b):
         if self.n > 0:
-            return np.power(x + a, self.n)
+            return np.power(a * x + b, self.n)
         else:
-            return 1 / (np.power(x + a), self.n) + 1e-15
+            return 1 / (np.power(a * x + b), self.n) + 1e-15
 
 
 class Power2(_Power):
@@ -91,3 +101,6 @@ class Inv(_Power):
 
 class InvPower2(_Power):
     n = -2
+
+
+DEFAULT_TRANSFORM = [Abs(), Loge(), Exp(), Power2(), Power3(), Sqrt(), Inv(), InvPower2()]
