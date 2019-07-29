@@ -55,6 +55,7 @@ class Loge(BaseTransformer):
 
 
 class Log2(BaseTransformer):
+    
     def __call__(self, x, a, b):
         return np.log2(a * x + b)
 
