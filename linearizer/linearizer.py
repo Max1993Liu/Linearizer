@@ -27,8 +27,7 @@ _METRICS = {
 }
 
 
-def find_best_transformation(x, y, transformations=None, metric='corr', 
-							ignore_na=True, suppress_warning=True):
+def find_best_transformation(x, y, transformations=None, metric='corr', suppress_warning=True):
 	"""" Find the best transformation for `x` to linearize the relationship between `x` and `y` 
 	:param transformations: A list of Transformer object.
 	:param metric: The metric to maximize, default using correlation coefficient.
@@ -46,14 +45,9 @@ def find_best_transformation(x, y, transformations=None, metric='corr',
 	else:
 		raise ValueError('The `metric` argument should either be a string or a function.')
 
-	if ignore_na:
-		x, y = drop_na(x, y, according='x')
-
-
 	# the baseline is the metric under no transformation
 	baseline = metric(x, y)
 
-	# a
 	with warnings.catch_warnings():
 		action = 'ignore' if suppress_warning else 'always'
 		warnings.simplefilter(action)
@@ -79,6 +73,7 @@ def find_best_transformation(x, y, transformations=None, metric='corr',
 			if m > baseline:
 				result.append((m, trf))
 
+	print(baseline, result)
 	if result:
 		return sorted(result, reverse=True)[0]
 	else:
@@ -88,16 +83,18 @@ def find_best_transformation(x, y, transformations=None, metric='corr',
 
 class Linearizer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, cols=None, bins=50, binary_label=True,
+	def __init__(self, cols=None, binary_label=True, bins=50, transform_y=None,
 				transformations=None, metric='corr', 
 				ignore_na=True, suppress_warning=True,
 				copy=True):
 		"""
 		:param cols: Choose columns to apply transformations, set as None for all columns.
-		:param bins: Number of bins when we need to calculate the positive rate in each bins,
-					only used when `binary_label` is True.
 		:param binary_label: Whether the label is binary (0, 1), in other words. whether the problem
 					is classification or regression.
+		:param bins: Number of bins when we need to calculate the positive rate in each bins,
+					only used when `binary_label` is True.
+		:param transform_y: Transformation applied to y, can either be a string within ['odds', 'logodds'], 
+                    or a function
 		:param transformations: A list of `Transformer` object as the candidate transformations.
 		:param metric: The metric to maximize, default using correlation coefficient.
 		:param ignore_na: Whether to ignore nan, default set as True.
@@ -106,6 +103,7 @@ class Linearizer(BaseEstimator, TransformerMixin):
 		self.cols = cols
 		self.bins = bins
 		self.binary_label = binary_label
+		self.transform_y = transform_y
 		self.cand_trfs = transformations
 		self.metric = metric
 		self.ignore_na = ignore_na
@@ -117,16 +115,20 @@ class Linearizer(BaseEstimator, TransformerMixin):
 
 		self.transformations = {}
 		for col in cols:
-			if self.binary_label:
-				x_, y_ = as_positive_rate(X[col], y, bins=self)	
-			else:
-				x_, y_ = X[col], y
-
-			_, trf = find_best_transformation(x_, y_, 
-										      transformations=self.cand_trfs, 
-											  metric=self.metric,
-											  ignore_na=self.ignore_na,
-											  suppress_warning=self.suppress_warning)
+			x_, y_ = preprocess(X[col], y, 
+								binary_label=self.binary_label, 
+								bins=self.bins, 
+								transform_y=self.transform_y, 
+								interval_value='mean', 
+								ignore_na=self.ignore_na)
+			try:
+				_, trf = find_best_transformation(x_, y_, 
+											      transformations=self.cand_trfs, 
+												  metric=self.metric,
+												  suppress_warning=self.suppress_warning)
+			except:
+				print(x_, y_)
+				raise
 			self.transformations[col] = trf
 		return self
 
@@ -136,7 +138,7 @@ class Linearizer(BaseEstimator, TransformerMixin):
 		if self.copy:
 			X = X.copy()
 
-		for col, trf in self.transformations:
+		for col, trf in self.transformations.items():
 			if trf is not None:
 				X[col] = trf.transform(X[col])
 
