@@ -12,6 +12,9 @@ class BaseTransformer:
         
     def __init__(self):
         self.params = None
+
+    def __repr__(self):
+        return 'Transform<{}>'.format(self.__class__.__name__)
         
     def __call__(self, x):
         return NotImplementedError
@@ -51,8 +54,7 @@ class Loge(BaseTransformer):
         return np.log(a * x + b)
 
 
- class Log2(BaseTransformer):
-
+class Log2(BaseTransformer):
     def __call__(self, x, a, b):
         return np.log2(a * x + b)
 
@@ -76,7 +78,7 @@ class _Power(BaseTransformer):
         if self.n > 0:
             return np.power(a * x + b, self.n)
         else:
-            return 1 / (np.power(a * x + b), self.n) + 1e-15
+            return 1 / (np.power(a * x + b, -self.n) + 1e-15)
 
 
 class Power2(_Power):
