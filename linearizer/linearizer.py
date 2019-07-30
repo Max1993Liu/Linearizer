@@ -10,6 +10,9 @@ from .transform import DEFAULT_TRANSFORM
 from .utils import *
 
 
+__all__ = ['find_best_transformation', 'Linearizer']
+
+
 def r_squared(x, y):
     """ Return R^2 where x and y are array-like."""
     slope, intercept, r_value, p_value, std_err = linregress(x, y)
@@ -79,7 +82,6 @@ def find_best_transformation(x, y, transformations=None,
 			if m > baseline + min_delta:
 				result.append((m, trf))
 
-	print(baseline, result)
 	if result:
 		return sorted(result, reverse=True)[0]
 	else:
@@ -119,6 +121,8 @@ class Linearizer(BaseEstimator, TransformerMixin):
 
 	def fit(self, X, y):
 		cols = self.cols or X.columns
+		if self.standardize:
+			X = self.SS.fit_transform(X[col])
 
 		self.transformations = {}
 		for col in cols:
@@ -128,15 +132,13 @@ class Linearizer(BaseEstimator, TransformerMixin):
 								transform_y=self.transform_y, 
 								interval_value='mean', 
 								ignore_na=self.ignore_na)
-			try:
-				_, trf = find_best_transformation(x_, y_, 
-											      transformations=self.cand_trfs, 
-												  metric=self.metric,
-												  suppress_warning=self.suppress_warning)
-			except:
-				print(x_, y_)
-				raise
+			
+			_, trf = find_best_transformation(x_, y_, 
+										      transformations=self.cand_trfs, 
+											  metric=self.metric,
+											  suppress_warning=self.suppress_warning)
 			self.transformations[col] = trf
+		
 		return self
 
 	def transform(self, X):
