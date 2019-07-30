@@ -63,9 +63,21 @@ def as_positive_rate(x, y, bins, interval_value='mean'):
     return pos_pct.index.values, pos_pct.values
 
 
+EPILSON = 1e-15
+
+
+def _odds(p):
+    p = np.clip(p, EPILSON, 1 - EPILSON)
+    return p / (1 - p)
+
+
+def _logodds(p):
+    return np.log(_odds(p))
+
+
 _TRANSFORMS = {
-    'odds': lambda p: p / (1 - p),
-    'logodds': lambda p: np.log(p / (1 - p))
+    'odds': _odds,
+    'logodds': _logodds
 }
 
 

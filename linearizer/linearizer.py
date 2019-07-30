@@ -27,11 +27,14 @@ _METRICS = {
 }
 
 
-def find_best_transformation(x, y, transformations=None, metric='corr', suppress_warning=True):
+def find_best_transformation(x, y, transformations=None,
+							metric='corr', min_delta=0.0, 
+							suppress_warning=True):
 	"""" Find the best transformation for `x` to linearize the relationship between `x` and `y` 
 	:param transformations: A list of Transformer object.
-	:param metric: The metric to maximize, default using correlation coefficient.
-	:param ignore_na: Whether to ignore nan, default set as True.
+	:param metric: The metric to maximize, default using correlation coefficient
+	:param min_delta: Minimum improvement in the metrics after the transformation
+	:param ignore_na: Whether to ignore nan, default set as True
 	:param suppress_warning: Whether to suppress warnings during the fit process
 	"""
 	trfs = transformations or DEFAULT_TRANSFORM
@@ -54,6 +57,9 @@ def find_best_transformation(x, y, transformations=None, metric='corr', suppress
 
 		result = []
 		for trf in trfs:
+			# instantiate a new object
+			trf = trf()
+
 			if not trf.validate_input(x):
 				continue
 
@@ -70,7 +76,7 @@ def find_best_transformation(x, y, transformations=None, metric='corr', suppress
 
 			# the metric after transformation
 			m = metric(trf.transform(x), y)
-			if m > baseline:
+			if m > baseline + min_delta:
 				result.append((m, trf))
 
 	print(baseline, result)
@@ -83,8 +89,8 @@ def find_best_transformation(x, y, transformations=None, metric='corr', suppress
 
 class Linearizer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, cols=None, binary_label=True, bins=50, transform_y=None,
-				transformations=None, metric='corr', 
+	def __init__(self, cols=None, binary_label=True, bins=30, transform_y=None,
+				transformations=None, metric='corr', min_delta=0.2,
 				ignore_na=True, suppress_warning=True,
 				copy=True):
 		"""
@@ -97,6 +103,7 @@ class Linearizer(BaseEstimator, TransformerMixin):
                     or a function
 		:param transformations: A list of `Transformer` object as the candidate transformations.
 		:param metric: The metric to maximize, default using correlation coefficient.
+		:param min_delta: Minimum improvement in the metrics after the transformation.
 		:param ignore_na: Whether to ignore nan, default set as True.
 		:param suppress_warning: Whether to suppress warnings during the fit process
 		"""

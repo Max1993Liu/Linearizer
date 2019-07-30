@@ -14,7 +14,7 @@ class BaseTransformer:
         self.params = None
 
     def __repr__(self):
-        return 'Transform<{}>'.format(self.__class__.__name__)
+        return 'Transform<{}:{}>'.format(self.__class__.__name__, self.params)
         
     def __call__(self, x):
         return NotImplementedError
@@ -106,4 +106,5 @@ class InvPower2(_Power):
     n = -2
 
 
-DEFAULT_TRANSFORM = [Abs(), Loge(), Exp(), Power2(), Power3(), Sqrt(), Inv(), InvPower2()]
+# DEFAULT_TRANSFORM = [Abs, Loge, Exp, Power2, Power3, Sqrt, Inv, InvPower2]
+DEFAULT_TRANSFORM = [Loge, Exp, Power2, Sqrt, Inv]
