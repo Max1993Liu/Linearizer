@@ -118,6 +118,7 @@ class Linearizer(BaseEstimator, TransformerMixin):
 		self.ignore_na = ignore_na
 		self.suppress_warning = suppress_warning
 		self.copy = copy
+		self.transformations = None
 
 	def fit(self, X, y):
 		cols = self.cols or X.columns
