@@ -121,8 +121,6 @@ class Linearizer(BaseEstimator, TransformerMixin):
 
 	def fit(self, X, y):
 		cols = self.cols or X.columns
-		if self.standardize:
-			X = self.SS.fit_transform(X[col])
 
 		self.transformations = {}
 		for col in cols:
