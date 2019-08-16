@@ -8,9 +8,13 @@ from sklearn.utils.validation import check_is_fitted
 
 from .transform import DEFAULT_TRANSFORM
 from .utils import *
+from .utils import _check_complexity
 
 
 __all__ = ['find_best_transformation', 'Linearizer']
+
+
+_check_complexity()
 
 
 def r_squared(x, y):
@@ -86,7 +90,7 @@ def find_best_transformation(x, y, transformations=None,
 		return sorted(result, reverse=True)[0]
 	else:
 		# no transformation is needed
-		return None, None
+		return None, None, None
 
 
 class Linearizer(BaseEstimator, TransformerMixin):

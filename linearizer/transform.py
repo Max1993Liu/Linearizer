@@ -15,7 +15,7 @@ class BaseTransformer:
         Each transformation has a complexity score, when multiple transformations yield
         the same amount of improvement, the one with the lowest complexity will be picked.
     """
-    complexity = 0
+    complexity = None
         
     def __init__(self):
         self.params = None

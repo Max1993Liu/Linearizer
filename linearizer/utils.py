@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 from types import FunctionType
+import warnings
+
+from .transform import BaseTransformer
 
 
 def drop_na(x, y, according='both'):
@@ -112,3 +115,12 @@ def preprocess(x, y, binary_label=True, bins=50, transform_y=None, interval_valu
 
     return x, y
 
+
+def _check_complexity():
+    cpl = {}
+    for cls in BaseTransformer.__subclasses__():
+        complexity = cls.complexity
+        if complexity in cpl:
+            warnings.warn('{} and {} has the same complexity {}.'.\
+                    format(cls.__name__, cpl[complexity].__name__, complexity))
+        cpl[complexity] = cls 
