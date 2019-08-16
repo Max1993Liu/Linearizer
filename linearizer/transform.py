@@ -9,6 +9,13 @@ __all__ = ['Abs', 'Loge', 'Log2', 'Log10', 'Exp',
 
 
 class BaseTransformer:
+    """ The base class for transforming a data series, the __call__ method needs to be 
+        implemented in subclasses.
+
+        Each transformation has a complexity score, when multiple transformations yield
+        the same amount of improvement, the one with the lowest complexity will be picked.
+    """
+    complexity = 0
         
     def __init__(self):
         self.params = None
@@ -43,30 +50,35 @@ class BaseTransformer:
 
 
 class Abs(BaseTransformer):
+    complexity = 50
 
     def __call__(self, x, a, b):
         return np.abs(a * x + b)
 
 
 class Loge(BaseTransformer):
+    complexity = 26
 
     def __call__(self, x, a, b):
         return np.log(a * x + b)
 
 
 class Log2(BaseTransformer):
+    complexity = 25
     
     def __call__(self, x, a, b):
         return np.log2(a * x + b)
 
 
 class Log10(BaseTransformer):
+    complexity = 35
 
     def __call__(self, x, a, b):
         return np.log10(a * x + b)
 
 
 class Exp(BaseTransformer):
+    complexity = 40
 
     def __call__(self, x, a, b):
         return np.exp(a * x + b)
@@ -74,6 +86,7 @@ class Exp(BaseTransformer):
 
 class _Power(BaseTransformer):
     n = 1
+    complexity = n * 30
 
     def __call__(self, x, a, b):
         if self.n > 0:
@@ -96,14 +109,17 @@ class Power4(_Power):
 
 class Sqrt(_Power):
     n = 1 / 2
+    complexity = 33
 
 
 class Inv(_Power):
     n = -1
+    complexity = 37
 
 
 class InvPower2(_Power):
     n = -2
+    complexity = 67
 
 
 # DEFAULT_TRANSFORM = [Abs, Loge, Exp, Power2, Power3, Sqrt, Inv, InvPower2]

@@ -80,7 +80,7 @@ def find_best_transformation(x, y, transformations=None,
 			# the metric after transformation
 			m = metric(trf.transform(x), y)
 			if m > baseline + min_delta:
-				result.append((m, trf))
+				result.append((m, trf.complexity, trf))
 
 	if result:
 		return sorted(result, reverse=True)[0]
@@ -132,7 +132,7 @@ class Linearizer(BaseEstimator, TransformerMixin):
 								interval_value='mean', 
 								ignore_na=self.ignore_na)
 			
-			_, trf = find_best_transformation(x_, y_, 
+			_, _, trf = find_best_transformation(x_, y_, 
 										      transformations=self.cand_trfs, 
 											  metric=self.metric,
 											  suppress_warning=self.suppress_warning)
